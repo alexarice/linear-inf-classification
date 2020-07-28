@@ -53,13 +53,13 @@ calcBit :: NoVars -- ^ Number of variables in the graphs
         -> Int -- ^ The bit that determines whether there is an edge between a and b.
 calcBit noVars x y
   | x == 0 = y - 1
-  | otherwise = n - 1 + calcBit (noVars - 1) (x-1) (y-1)
+  | otherwise = noVars - 1 + calcBit (noVars - 1) (x-1) (y-1)
 
 -- |'fromCompressed' converts a compressed graph into a normal graph
 fromCompressed :: NoVars -> LinGraphC -> LinGraph
 fromCompressed noVars lgc x y
   | x == y = False -- We do not have an edge from x to x
-  | x > y = fromCompressed n lgc y x -- If x > y we flip the arguments so that x < y
+  | x > y = fromCompressed noVars lgc y x -- If x > y we flip the arguments so that x < y
   | y >= noVars = False -- Make sure x and y are bounded correctly
   | x < 0 = False
   | otherwise = testBit lgc $ calcBit noVars x y -- Check if the corresponding bit is 1
@@ -193,9 +193,10 @@ isMedialStar noVars p q = cond1 && cond2
     -- ^ The first condition is that the edges of 'p' must be a subset of edges of 'q'
     psquare a b c d = p a b && p c d && not (p a c) && not (p a d) && not (p b c) && not (p b d)
     qsquare a b c d = q a b && q c d && not (q a c) && q a d && q b c && not (q b d)
-    cond2 = all (\(a,d) -> a == d || lg1 a d || not (lg2 a d) || any (\(b,c) -> psquare a b c d && qsquare a b c d) pairs) pairs
-    -- ^ condition 2 says that for all pairs of nodes '(a,d)' there
-    -- exists 'b' and 'c' such that in 'p' we have
+    cond2 = all (\(a,d) -> a == d || p a d || not (q a d) || any (\(b,c) -> psquare a b c d && qsquare a b c d) pairs) pairs
+    -- ^ condition 2 says that for all pairs of nodes '(a,d)', with no
+    -- edge a to d in 'p' and an edge a to d in 'q', there exists 'b'
+    -- and 'c' such that in 'p' we have
     -- a -- b
     --
     -- c -- d
@@ -281,15 +282,15 @@ classify noVars lg1 lg2 =
 retrieveGraph :: FilePath -> InfGraph -> IO InfGraph
 retrieveGraph filename graph = do
   b <- doesFileExist filename
-  if b then putStrLn "Found file" >> deserialise <$> BS.readFile filename
+  if b then putStrLn ("Found file " ++ filename) >> deserialise <$> BS.readFile filename
     else do
-    putStrLn "Could not find " ++ filename ++ " so will build"
+    putStrLn $ "Could not find " ++ filename ++ " so will build"
     (BS.writeFile filename . serialise) graph
     return graph
 
 -- | Main program
 main :: IO ()
-main = go 6
+main = go 7
   where
     go :: NoVars -> IO ()
     -- ^ Call main method specifying the number of variables
