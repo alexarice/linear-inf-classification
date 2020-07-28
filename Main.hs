@@ -297,7 +297,7 @@ main = go 7
     go noVars = do
       g <- retrieveGraph ("graphs/InfGraph_" ++ show noVars) (buildGraph noVars (allMaxCliques noVars))
       -- Build the inference graph (or retrive a saved one)
-      print (M.size g)
+      putStrLn $ "Number of graphs representing formulae: " ++ show (M.size g)
       -- Print its size
       let g2 = M.mapWithKey (\k _ -> getMinimal g k) g
       -- Get an inference graph of minimal inferences
@@ -309,7 +309,7 @@ main = go 7
       -- Classify all inferences
       let parClassInfs = withStrategy (parListChunk 1000 rdeepseq) $ classifiedInfs
       -- Calculate this in parallel
-      let tally = mconcat parClassInfs
+      let (switches, medials, other) = mconcat parClassInfs
       -- Tally the results
-      print tally
+      putStrLn $ "There were " ++ show switches ++ " switches, " ++ show medials ++ " medials, and " ++ show other ++ " other inferences"
       -- and print
