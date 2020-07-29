@@ -93,20 +93,20 @@ allLinGraphsFromForm n
 
 -- |Determines the set of nodes which neighbour the input node. We
 -- simply check them all. This is used in the algorithm below.
-neighbourSet :: NoVars -> LinGraph -> Node -> S.Set Node
+neighbourSet :: NoVars -> LinGraph -> Node -> Set Node
 neighbourSet noVars lg n = S.fromList [ m | m <- [0 .. (noVars - 1)] , lg n m ]
 
 -- |Type for storing the collection of max cliques in a graph.
-type MCliques = [ S.Set Node ]
+type MCliques = [ Set Node ]
 
 -- |Algorithm for finding all max cliques of a graph.
 -- See https://en.wikipedia.org/wiki/Bron%E2%80%93Kerbosch_algorithm
-bronKerbosch :: NoVars -> LinGraph -> S.Set Node -> S.Set Node -> S.Set Node -> MCliques
+bronKerbosch :: NoVars -> LinGraph -> Set Node -> Set Node -> Set Node -> MCliques
 bronKerbosch noVars lg r p x
   | S.null p && S.null x = [ r ]
   | otherwise = go p x
     where
-      go :: S.Set Int -> S.Set Int -> [ S.Set Int ]
+      go :: Set Int -> Set Int -> [ Set Int ]
       go p' x'
         | null p' = []
         | otherwise =
@@ -157,7 +157,7 @@ buildNonTrivialEdgesFrom noVars c xs =
   in (filter (\(_,c2) -> not (isTrivial noVars c c2)) ys)
 
 -- |Type for an inference graph. This is a map from 'Ints' (= Nodes) to sets of nodes.
-type InfGraph = M.IntMap (S.Set LinGraphC)
+type InfGraph = M.IntMap (Set LinGraphC)
 
 -- |Build the inference graph of non trivial inferences.
 buildGraph :: NoVars -- ^ Number of variables
@@ -177,7 +177,7 @@ buildGraph noVars xs = xs `deepseq` infgraph -- Make sure the inputs graphs are 
 -- | Given an inference graph and a node 'x', 'getMinimal' gets all
 -- the minimal inferences from 'x'. That is nodes 'y' such that there
 -- is no 'z' distinct from 'x' and 'y' with 'x -> z -> y'
-getMinimal :: InfGraph -> LinGraphC -> S.Set LinGraphC
+getMinimal :: InfGraph -> LinGraphC -> Set LinGraphC
 getMinimal ig x =
   let keys = (ig M.! x) -- All the things implied by 'x'
       transitiveImplied = S.unions ((ig M.!) <$> S.toList keys) -- All the things implied by the things implied by 'x'
